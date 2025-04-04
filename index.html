@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Inspirational Quote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            transition: background-image 1s ease-in-out;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 900px;
+            width: 90%;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .quote-text {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.4;
+        }
+        
+        .quote-author {
+            font-size: 1.2rem;
+            font-style: italic;
+            margin-bottom: 2rem;
+        }
+        
+        .date-display {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #3a5a8a;
+        }
+        
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid #ffffff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .quote-text {
+                font-size: 1.5rem;
+            }
+            
+            .quote-author {
+                font-size: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+                padding: 1rem;
+            }
+            
+            .quote-text {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    
+    <div class="container">
+        <h1 class="quote-text" id="quote-text">"Loading today's inspiration..."</h1>
+        <p class="quote-author" id="quote-author">- Please wait</p>
+        <p class="date-display" id="date-display">Loading date...</p>
+        
+        <div class="controls">
+            <button id="play-pause">Play Audio</button>
+        </div>
+    </div>
+    
+    <audio id="background-audio" loop>
+        <source src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <script>
+        // DOM elements
+        const quoteText = document.getElementById('quote-text');
+        const quoteAuthor = document.getElementById('quote-author');
+        const dateDisplay = document.getElementById('date-display');
+        const playPauseBtn = document.getElementById('play-pause');
+        const audio = document.getElementById('background-audio');
+        const loadingScreen = document.getElementById('loading');
+        
+        // Base URL for GitHub repository (update this to your repository URL)
+        const baseUrl = 'https://yourusername.github.io/your-repo-name/';
+        const dailyContentPath = 'static/content/daily_content.json';
+        
+        // Format date
+        function formatDate(dateString) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+        
+        // Load content from daily JSON file
+        async function loadDailyContent() {
+            try {
+                // Fetch the daily content
+                const response = await fetch(`${baseUrl}${dailyContentPath}?_=${new Date().getTime()}`);
+                const data = await response.json();
+                
+                // Update the UI with the content
+                quoteText.textContent = `"${data.quote.text}"`;
+                quoteAuthor.textContent = `- ${data.quote.author}`;
+                dateDisplay.textContent = formatDate(data.date);
+                
+                // Set the background image
+                document.body.style.backgroundImage = `url('${baseUrl}${data.background}')`;
+                
+                // Set the audio source
+                audio.src = `${baseUrl}${data.audio}`;
+                
+                // Hide loading screen
+                loadingScreen.style.display = 'none';
+                
+                return true;
+            } catch (error) {
+                console.error('Error loading daily content:', error);
+                quoteText.textContent = '"Error loading today\'s inspiration"';
+                quoteAuthor.textContent = '- Please try again later';
+                loadingScreen.style.display = 'none';
+                return false;
+            }
+        }
+        
+        // Check if content needs to be refreshed (based on date)
+        function checkContentFreshness() {
+            const lastCheck = localStorage.getItem('lastContentCheck');
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (lastCheck !== today) {
+                localStorage.setItem('lastContentCheck', today);
+                return false; // Content needs refresh
+            }
+            return true; // Content is fresh
+        }
+        
+        // Event listeners
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.textContent = 'Pause Audio';
+            } else {
+                audio.pause();
+                playPauseBtn.textContent = 'Play Audio';
+            }
+        });
+        
+        // Check for cached content
+        const cachedContent = localStorage.getItem('dailyContent');
+        const isFresh = checkContentFreshness();
+        
+        if (cachedContent && isFresh) {
+            // Use cached content if it's still fresh
+            const data = JSON.parse(cachedContent);
+            quoteText.textContent = `"${data.quote.text}"`;
+            quoteAuthor.textContent = `- ${data.quote.author}`;
+            dateDisplay.textContent = formatDate(data.date);
+            document.body.style.backgroundImage = `url('${baseUrl}${data.background}')`;
+            audio.src = `${baseUrl}${data.audio}`;
+            loadingScreen.style.display = 'none';
+        } else {
+            // Load fresh content
+            loadDailyContent().then(success => {
+                if (success) {
+                    // Cache the content
+                    const contentToCache = {
+                        quote: {
+                            text: quoteText.textContent.replace(/^"|"$/g, ''),
+                            author: quoteAuthor.textContent.replace(/^- /, '')
+                        },
+                        date: new Date().toISOString().split('T')[0],
+                        background: document.body.style.backgroundImage.replace(/^url\(['"](.+)['"]\)$/, '$1').replace(baseUrl, ''),
+                        audio: audio.src.replace(baseUrl, '')
+                    };
+                    localStorage.setItem('dailyContent', JSON.stringify(contentToCache));
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+name: Generate Daily Content
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run at midnight UTC every day
+  workflow_dispatch:      # Allow manual triggering
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install schedule flask
+          
+      - name: Generate daily content
+        run: |
+          mkdir -p static/content/images static/content/audio
+          python -c "
+import os
+import json
+import random
+from datetime import datetime
+
+# Configuration
+GITHUB_REPO_PATH = 'static/content'
+QUOTES_FILE = os.path.join(GITHUB_REPO_PATH, 'quotes.json')
+OUTPUT_FILE = os.path.join(GITHUB_REPO_PATH, 'daily_content.json')
+
+def get_all_audio_files():
+    audio_dir = os.path.join(GITHUB_REPO_PATH, 'audio')
+    return [f'audio/{file}' for file in os.listdir(audio_dir) if file.endswith(('.mp3', '.ogg', '.wav'))]
+
+def get_all_background_images():
+    images_dir = os.path.join(GITHUB_REPO_PATH, 'images')
+    return [f'images/{file}' for file in os.listdir(images_dir) if file.endswith(('.jpg', '.jpeg', '.png', '.gif'))]
+
+def get_all_quotes():
+    with open(QUOTES_FILE, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+def generate_daily_content():
+    # Get available content
+    quotes = get_all_quotes()
+    audio_files = get_all_audio_files()
+    background_images = get_all_background_images()
+    
+    # Select random content for today
+    today_quote = random.choice(quotes)
+    today_audio = random.choice(audio_files)
+    today_background = random.choice(background_images)
+    
+    # Create daily content object
+    daily_content = {
+        'date': datetime.now().strftime('%Y-%m-%d'),
+        'quote': {
+            'text': today_quote['text'],
+            'author': today_quote['author']
+        },
+        'audio': today_audio,
+        'background': today_background
+    }
+    
+    # Save to JSON file
+    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+        json.dump(daily_content, f, ensure_ascii=False, indent=2)
+    
+    print(f'Daily content generated for {daily_content[\"date\"]}')
+    return daily_content
+
+if not os.path.exists(QUOTES_FILE):
+    example_quotes = [
+        {'text': 'The best way to predict the future is to create it.', 'author': 'Abraham Lincoln'},
+        {'text': 'Life is what happens when you\\'re busy making other plans.', 'author': 'John Lennon'},
+        {'text': 'The purpose of our lives is to be happy.', 'author': 'Dalai Lama'},
+        {'text': 'Get busy living or get busy dying.', 'author': 'Stephen King'},
+        {'text': 'You only live once, but if you do it right, once is enough.', 'author': 'Mae West'}
+    ]
+    with open(QUOTES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(example_quotes, f, ensure_ascii=False, indent=2)
+
+generate_daily_content()
+          "
+        
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
+          git add static/content/daily_content.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update daily content for $(date +'%Y-%m-%d')" && git push)
