@@ -1,10 +1,10 @@
 [
     {
-    "tteexxtt": "YYoouurr qquuoottee tteexxtt hheerree",
-    "aauutthhoorr": "AAuutthhoorr NNaammee"
+    "text": "YYoouurr qquuoottee tteexxtt hheerree",
+    "author": "AAuutthhoorr NNaammee"
     },
     {
-    "tteexxtt": "AAnnootthheerr iinnssppiirriinngg qquuoottee",
-    "aauutthhoorr": "AAnnootthheerr AAuutthhoorr"
+    "text": "AAnnootthheerr iinnssppiirriinngg qquuoottee",
+    "author": "AAnnootthheerr AAuutthhoorr"
     }
 ]
