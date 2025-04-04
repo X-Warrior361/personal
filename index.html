@@ -244,7 +244,7 @@
             // Use cached content if it's still fresh
             const data = JSON.parse(cachedContent);
             quoteText.textContent = `"${data.quote.text}"`;
-            quoteAuthor.textContent = `- ${data.quote.author}`;
+            quoteAuthor.textContent = `"${data.quote.author}"`;
             dateDisplay.textContent = formatDate(data.date);
             document.body.style.backgroundImage = `url('${baseUrl}${data.background}')`;
             audio.src = `${baseUrl}${data.audio}`;
