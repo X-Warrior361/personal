@@ -166,8 +166,6 @@
     <script>
         // DOM elements
         const quoteText = document.getElementById('quote-text');
-        const quoteAuthor = document.getElementById('quote-author');
-        const dateDisplay = document.getElementById('date-display');
         const playPauseBtn = document.getElementById('play-pause');
         const audio = document.getElementById('background-audio');
         const loadingScreen = document.getElementById('loading');
@@ -191,9 +189,7 @@
                 
                 // Update the UI with the content
                 quoteText.textContent = `"${data.quote.text}"`;
-                quoteAuthor.textContent = `- ${data.quote.author}`;
-                dateDisplay.textContent = formatDate(data.date);
-                
+
                 // Set the background image
                 document.body.style.backgroundImage = `url('${baseUrl}${data.background}')`;
                 
@@ -207,7 +203,6 @@
             } catch (error) {
                 console.error('Error loading daily content:', error);
                 quoteText.textContent = '"Error loading today\'s inspiration"';
-                quoteAuthor.textContent = '- Please try again later';
                 loadingScreen.style.display = 'none';
                 return false;
             }
@@ -244,8 +239,6 @@
             // Use cached content if it's still fresh
             const data = JSON.parse(cachedContent);
             quoteText.textContent = `"${data.quote.text}"`;
-            quoteAuthor.textContent = `"${data.quote.author}"`;
-            dateDisplay.textContent = formatDate(data.date);
             document.body.style.backgroundImage = `url('${baseUrl}${data.background}')`;
             audio.src = `${baseUrl}${data.audio}`;
             loadingScreen.style.display = 'none';
@@ -257,7 +250,6 @@
                     const contentToCache = {
                         quote: {
                             text: quoteText.textContent.replace(/^"|"$/g, ''),
-                            author: quoteAuthor.textContent.replace(/^- /, '')
                         },
                         date: new Date().toISOString().split('T')[0],
                         background: document.body.style.backgroundImage.replace(/^url\(['"](.+)['"]\)$/, '$1').replace(baseUrl, ''),
